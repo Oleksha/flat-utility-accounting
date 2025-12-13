@@ -35,7 +35,7 @@
             <input type="date"
                    name="payment_date"
                    class="form-control"
-                   value="{{ old('payment_date', optional($payment->payment_date)->format('Y-m-d')) }}"
+                   value="{{ old('payment_date', $payment->payment_date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
                    required>
         </div>
 

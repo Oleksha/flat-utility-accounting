@@ -8,7 +8,7 @@
                 <option value="">Выберите...</option>
                 @foreach($apartments as $apartment)
                     <option value="{{ $apartment->id }}"
-                        {{ old('apartment_id', $charge->apartment_id) == $apartment->id ? 'selected' : '' }}>
+                        {{ old('apartment_id', $apartmentId ?? $charge->apartment_id) == $apartment->id ? 'selected' : '' }}>
                         {{ $apartment->name }} — {{ $apartment->address }}
                     </option>
                 @endforeach
@@ -30,13 +30,29 @@
         </div>
 
         {{-- Период --}}
-        <div class="mb-3">
-            <label class="form-label">Период</label>
-            <input type="month"
-                   name="period"
-                   value="{{ old('period', optional($charge->period)->format('Y-m')) }}"
-                   class="form-control"
-                   required>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Месяц</label>
+                <select name="month" class="form-select" required>
+                    @foreach(range(1,12) as $m)
+                        <option value="{{ $m }}"
+                            {{ old('month', optional($charge->period)->month ?? now()->month) == $m ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::create()->month($m)->translatedFormat('F') }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Год</label>
+                <select name="year" class="form-select" required>
+                    @foreach(range(now()->year, now()->year - 5) as $y)
+                        <option value="{{ $y }}"
+                            {{ old('year', optional($charge->period)->year) == $y ? 'selected' : '' }}>
+                            {{ $y }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
         </div>
 
         {{-- Сумма --}}

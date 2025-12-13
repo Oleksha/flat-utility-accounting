@@ -15,12 +15,13 @@ class ChargeController extends Controller
         return view('charges.index', compact('charges'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         return view('charges.create', [
             'apartments' => Apartment::all(),
             'services'   => Service::all(),
             'charge'     => new Charge(),
+            'apartmentId'=> $request->get('apartment_id'),
         ]);
     }
 
@@ -28,11 +29,21 @@ class ChargeController extends Controller
     {
         $data = $request->validate([
             'apartment_id' => 'required|exists:apartments,id',
-            'service_id' => 'required|exists:services,id',
-            'amount' => 'required|numeric|min:0',
-            'period' => 'required|date',
+            'service_id'   => 'required|exists:services,id',
+            'amount'       => 'required|numeric|min:0',
+            'month'        => 'required|integer|min:1|max:12',
+            'year'         => 'required|integer',
             'comment' => 'nullable|string|max:255',
         ]);
+
+        $data['period'] = \Carbon\Carbon::create(
+            $data['year'],
+            $data['month'],
+            1
+        );
+
+        // убрать month/year
+        unset($data['month'], $data['year']);
 
         Charge::create($data);
 
@@ -54,11 +65,21 @@ class ChargeController extends Controller
     {
         $data = $request->validate([
             'apartment_id' => 'required|exists:apartments,id',
-            'service_id' => 'required|exists:services,id',
-            'amount' => 'required|numeric|min:0',
-            'period' => 'required|date',
-            'comment' => 'nullable|string|max:255',
+            'service_id'   => 'required|exists:services,id',
+            'amount'       => 'required|numeric|min:0',
+            'month'        => 'required|integer|min:1|max:12',
+            'year'         => 'required|integer',
+            'comment'      => 'nullable|string|max:255',
         ]);
+
+        $data['period'] = \Carbon\Carbon::create(
+            $data['year'],
+            $data['month'],
+            1
+        );
+
+        // убрать month/year
+        unset($data['month'], $data['year']);
 
         $charge->update($data);
 

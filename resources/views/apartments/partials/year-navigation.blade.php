@@ -14,18 +14,28 @@
         ⟵ {{ $year - 1 }}
     </a>
 
+    <div class="d-flex gap-2">
+        <form method="GET" action="{{ route('apartments.show', $apartment->id) }}">
+            <select name="year"
+                    class="form-select"
+                    onchange="this.form.submit()">
+                @foreach($years as $y)
+                    <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>
+                        {{ $y }}
+                    </option>
+                @endforeach
+            </select>
+        </form>
+        <a href="{{ route('apartments.report.pdf', [
+            'apartment' => $apartment->id,
+            'year' => $year
+        ]) }}"
+           class="btn btn-outline-dark mb-3">
+            📄 Скачать PDF-отчёт
+        </a>
+    </div>
     {{-- Выбор года --}}
-    <form method="GET" action="{{ route('apartments.show', $apartment->id) }}">
-        <select name="year"
-                class="form-select"
-                onchange="this.form.submit()">
-            @foreach($years as $y)
-                <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>
-                    {{ $y }}
-                </option>
-            @endforeach
-        </select>
-    </form>
+
 
     {{-- Следующий год --}}
     <a href="{{ route('apartments.show', [

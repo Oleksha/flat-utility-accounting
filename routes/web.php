@@ -10,3 +10,8 @@ Route::resource('services', Controllers\ServiceController::class);
 Route::resource('rates', Controllers\RateController::class);
 Route::resource('charges', Controllers\ChargeController::class);
 Route::resource('payments', Controllers\PaymentController::class);
+
+Route::get(
+    '/apartments/{apartment}/report/pdf',
+    [Controllers\ApartmentController::class, 'pdfReport']
+)->name('apartments.report.pdf');

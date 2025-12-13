@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Apartment;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class ApartmentController extends Controller
@@ -143,5 +144,52 @@ class ApartmentController extends Controller
     {
         $apartment->delete();
         return redirect()->route('apartments.index')->with('success', 'Квартира удалена');
+    }
+
+    public function pdfReport(Apartment $apartment)
+    {
+        $year = request()->get('year', now()->year);
+
+        $charges = $apartment->charges()
+            ->whereYear('period', $year)
+            ->get()
+            ->groupBy(fn($c) => $c->period->format('Y-m'));
+
+        $payments = $apartment->payments()
+            ->whereYear('payment_date', $year)
+            ->get()
+            ->groupBy(fn($p) => $p->payment_date->format('Y-m'));
+
+        // месяцы года
+        $months = collect(range(1, 12))
+            ->map(fn($m) => sprintf('%d-%02d', $year, $m));
+
+        // сводка по месяцам
+        $rows = $months->map(function ($m) use ($charges, $payments) {
+            $charged = ($charges[$m] ?? collect())->sum('amount');
+            $paid    = ($payments[$m] ?? collect())->sum('amount');
+
+            return [
+                'month'   => $m,
+                'charged' => $charged,
+                'paid'    => $paid,
+                'balance' => $charged - $paid,
+            ];
+        });
+
+        $totalCharged = $rows->sum('charged');
+        $totalPaid    = $rows->sum('paid');
+        $totalBalance = $totalCharged - $totalPaid;
+
+        $pdf = Pdf::loadView('apartments.reports.year', [
+            'apartment'     => $apartment,
+            'year'          => $year,
+            'rows'          => $rows,
+            'totalCharged'  => $totalCharged,
+            'totalPaid'     => $totalPaid,
+            'totalBalance'  => $totalBalance,
+        ])->setPaper('a4');
+
+        return $pdf->download("Отчет_{$apartment->name}_{$year}.pdf");
     }
 }
