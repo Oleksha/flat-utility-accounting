@@ -12,6 +12,7 @@ class Payment extends Model
 
     protected $fillable = [
         'apartment_id',
+        'service_id',
         'amount',
         'payment_date',
         'comment',
@@ -20,6 +21,11 @@ class Payment extends Model
     protected $casts = [
         'payment_date' => 'date',
     ];
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
 
     public function apartment(): BelongsTo
     {

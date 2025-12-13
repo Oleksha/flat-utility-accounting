@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Payment;
 use App\Models\Apartment;
+use App\Models\Service;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -14,47 +15,66 @@ class PaymentController extends Controller
         return view('payments.index', compact('payments'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $apartments = Apartment::all();
-        return view('payments.create', compact('apartments'));
+        return view('payments.create', [
+            'payment'    => new Payment(),
+            'apartments' => Apartment::all(),
+            'services'   => Service::all(),
+            'apartmentId'=> $request->get('apartment_id'),
+        ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'apartment_id' => 'required|exists:apartments,id',
+            'service_id'   => 'nullable|exists:services,id',
             'amount' => 'required|numeric|min:0',
             'payment_date' => 'required|date',
             'comment' => 'nullable|string|max:255',
         ]);
 
-        Payment::create($request->all());
-        return redirect()->route('payments.index')->with('success', 'Платеж добавлен');
+        Payment::create($data);
+
+        return redirect()
+            ->route('apartments.show', $data['apartment_id'])
+            ->with('success', 'Платёж добавлен');
     }
 
     public function edit(Payment $payment)
     {
-        $apartments = Apartment::all();
-        return view('payments.edit', compact('payment', 'apartments'));
+        return view('payments.edit', [
+            'payment'    => $payment,
+            'apartments' => Apartment::all(),
+            'services'   => Service::all(),
+        ]);
     }
 
     public function update(Request $request, Payment $payment)
     {
-        $request->validate([
+        $data = $request->validate([
             'apartment_id' => 'required|exists:apartments,id',
+            'service_id'   => 'nullable|exists:services,id',
             'amount' => 'required|numeric|min:0',
             'payment_date' => 'required|date',
             'comment' => 'nullable|string|max:255',
         ]);
 
-        $payment->update($request->all());
-        return redirect()->route('payments.index')->with('success', 'Платеж обновлен');
+        $payment->update($data);
+
+        return redirect()
+            ->route('apartments.show', $data['apartment_id'])
+            ->with('success', 'Платёж обновлён');
     }
 
     public function destroy(Payment $payment)
     {
+        $apartmentId = $payment->apartment_id;
         $payment->delete();
-        return redirect()->route('payments.index')->with('success', 'Платеж удален');
+
+        return redirect()
+            ->route('apartments.show', $apartmentId)
+            ->with('success', 'Платёж удалён');
     }
 }

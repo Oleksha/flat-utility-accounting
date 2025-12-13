@@ -1,12 +1,50 @@
 @extends('layouts.app')
 
 @section('content')
-    <h1>Квартира: {{ $apartment->name }}</h1>
-    <p><strong>Адрес:</strong> {{ $apartment->address }}</p>
+    <h2>Квартира: {{ $apartment->name }}</h2>
+    <p class="text-muted"><strong>Адрес:</strong> {{ $apartment->address }}</p>
 
-    <div class="container">
+    <ul class="nav nav-tabs mb-4" id="apartmentTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#overview">
+                📊 Обзор
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#charges">
+                📄 Начисления
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#payments">
+                💳 Платежи
+            </button>
+        </li>
+    </ul>
 
-        {{--<div class="card mb-4">
+    <div class="tab-content">
+
+        {{-- ОБЗОР --}}
+        <div class="tab-pane fade show active" id="overview">
+            @include('apartments.tabs.overview')
+        </div>
+
+        {{-- НАЧИСЛЕНИЯ --}}
+        <div class="tab-pane fade" id="charges">
+            @include('apartments.tabs.charges')
+        </div>
+
+        {{-- ПЛАТЕЖИ --}}
+        <div class="tab-pane fade" id="payments">
+            @include('apartments.tabs.payments')
+        </div>
+
+    </div>
+@endsection
+
+    {{--<div class="container">
+
+        --}}{{--<div class="card mb-4">
             <div class="card-body d-flex justify-content-between align-items-center">
 
                 <h4 class="mb-0">Данные за {{ $year }} год</h4>
@@ -26,7 +64,7 @@
                 </form>
 
             </div>
-        </div>--}}
+        </div>--}}{{--
         @php
             $prevYear = $year - 1;
             $nextYear = $year + 1;
@@ -48,7 +86,7 @@
 
 
         <!-- Баланс -->
-    {{--<div class="row mb-4">
+    --}}{{--<div class="row mb-4">
         <div class="col-md-4">
             <div class="card text-white bg-primary mb-3">
                 <div class="card-header">Баланс</div>
@@ -82,7 +120,7 @@
                 </div>
             </div>
         </div>
-    </div>--}}
+    </div>--}}{{--
         <div class="row mb-4">
             <div class="col-md-4">
                 <div class="card text-bg-light">
@@ -269,4 +307,4 @@
                     });
                 });
             </script>
-    @endpush
+    @endpush--}}
