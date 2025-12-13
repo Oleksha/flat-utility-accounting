@@ -22,3 +22,17 @@ Route::post(
     [Controllers\ChargeController::class, 'copyFromPrevious']
 )->name('charges.copyFromPrevious');
 
+// Массовое добавление начислений на месяц
+Route::get('/charges/bulk/create', [Controllers\ChargeController::class, 'bulkCreate'])
+    ->name('charges.bulk.create');
+
+Route::post('/charges/bulk/store', [Controllers\ChargeController::class, 'bulkStore'])
+    ->name('charges.bulk.store');
+
+// Массовое добавление оплат на месяц
+Route::get('/payments/bulk/create', [Controllers\PaymentController::class, 'bulkCreate'])
+    ->name('payments.bulk.create');
+
+Route::post('/payments/bulk/store', [Controllers\PaymentController::class, 'bulkStore'])
+    ->name('payments.bulk.store');
+

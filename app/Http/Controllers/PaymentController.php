@@ -77,4 +77,46 @@ class PaymentController extends Controller
             ->route('apartments.show', $apartmentId)
             ->with('success', 'Платёж удалён');
     }
+
+    public function bulkCreate(Request $request)
+    {
+        return view('payments.bulk-create', [
+            'apartments'  => Apartment::all(),
+            'services'    => Service::all(),
+            'month'       => $request->get('month', now()->month),
+            'year'        => $request->get('year', now()->year),
+            'apartmentId' => $request->get('apartment_id'),
+            'paymentDate' => now()->format('Y-m-d'),
+        ]);
+    }
+
+    public function bulkStore(Request $request)
+    {
+        $data = $request->validate([
+            'apartment_id' => 'required|exists:apartments,id',
+            'payment_date' => 'required|date',
+            'payments'     => 'required|array',
+            'payments.*.service' => 'nullable|exists:services,id',
+            'payments.*.amount'  => 'nullable|numeric|min:0',
+        ]);
+
+        foreach ($data['payments'] as $payment) {
+
+            if (empty($payment['amount']) || $payment['amount'] == 0) {
+                continue;
+            }
+
+            Payment::create([
+                'apartment_id' => $data['apartment_id'],
+                'service_id'   => $payment['service'],
+                'payment_date' => $data['payment_date'],
+                'amount'       => $payment['amount'],
+            ]);
+        }
+
+        return redirect()
+            ->route('apartments.show', $data['apartment_id'])
+            ->with('success', 'Платежи сохранены');
+    }
+
 }

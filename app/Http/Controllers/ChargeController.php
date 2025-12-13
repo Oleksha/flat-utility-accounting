@@ -148,4 +148,59 @@ class ChargeController extends Controller
             "Скопировано начислений: {$copied}"
         );
     }
+
+    public function bulkCreate(Request $request)
+    {
+        return view('charges.bulk-create', [
+            'services'    => Service::all(),
+            'apartments'  => Apartment::all(),
+            'month'       => $request->get('month', now()->month),
+            'year'        => $request->get('year', now()->year),
+            'apartmentId' => $request->get('apartment_id'),
+        ]);
+    }
+
+    public function bulkStore(Request $request)
+    {
+        $data = $request->validate([
+            'apartment_id'      => 'required|exists:apartments,id',
+            'month'             => 'required|integer|min:1|max:12',
+            'year'              => 'required|integer',
+            'charges'           => 'required|array',
+            'charges.*.service' => 'required|exists:services,id',
+            'charges.*.amount'  => 'nullable|numeric|min:0',
+        ]);
+
+        $period = Carbon::create($data['year'], $data['month'], 1);
+
+        foreach ($data['charges'] as $charge) {
+
+            if ($charge['amount'] === null || $charge['amount'] == 0) {
+                continue;
+            }
+
+            // защита от дублей
+            $exists = Charge::where([
+                'apartment_id' => $data['apartment_id'],
+                'service_id'   => $charge['service'],
+                'period'       => $period,
+            ])->exists();
+
+            if ($exists) {
+                continue;
+            }
+
+            Charge::create([
+                'apartment_id' => $data['apartment_id'],
+                'service_id'   => $charge['service'],
+                'amount'       => $charge['amount'],
+                'period'       => $period,
+            ]);
+        }
+
+        return redirect()
+            ->route('apartments.show', $data['apartment_id'])
+            ->with('success', 'Начисления сохранены');
+    }
+
 }
