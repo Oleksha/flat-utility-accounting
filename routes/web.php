@@ -15,3 +15,10 @@ Route::get(
     '/apartments/{apartment}/report/pdf',
     [Controllers\ApartmentController::class, 'pdfReport']
 )->name('apartments.report.pdf');
+
+// Кнопка скопировать начисления предыдущего месяца
+Route::post(
+    '/charges/copy-from-previous',
+    [Controllers\ChargeController::class, 'copyFromPrevious']
+)->name('charges.copyFromPrevious');
+

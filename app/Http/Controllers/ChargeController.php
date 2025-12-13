@@ -6,6 +6,7 @@ use App\Models\Charge;
 use App\Models\Apartment;
 use App\Models\Service;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class ChargeController extends Controller
 {
@@ -96,5 +97,55 @@ class ChargeController extends Controller
         return redirect()
             ->route('apartments.show', $apartmentId)
             ->with('success', 'Начисление удалено');
+    }
+
+    public function copyFromPrevious(Request $request)
+    {
+        $data = $request->validate([
+            'apartment_id' => 'required|exists:apartments,id',
+            'month'        => 'required|integer|min:1|max:12',
+            'year'         => 'required|integer',
+        ]);
+
+        $currentPeriod = Carbon::create($data['year'], $data['month'], 1);
+        $prevPeriod = $currentPeriod->copy()->subMonth();
+
+        // начисления прошлого месяца
+        $previousCharges = Charge::where('apartment_id', $data['apartment_id'])
+            ->whereDate('period', $prevPeriod)
+            ->get();
+
+        if ($previousCharges->isEmpty()) {
+            return back()->with('warning', 'Нет начислений за прошлый месяц');
+        }
+
+        // услуги, которые уже есть в текущем месяце
+        $existingServices = Charge::where('apartment_id', $data['apartment_id'])
+            ->whereDate('period', $currentPeriod)
+            ->pluck('service_id')
+            ->toArray();
+
+        $copied = 0;
+
+        foreach ($previousCharges as $charge) {
+
+            if (in_array($charge->service_id, $existingServices)) {
+                continue;
+            }
+
+            Charge::create([
+                'apartment_id' => $charge->apartment_id,
+                'service_id'   => $charge->service_id,
+                'amount'       => $charge->amount,
+                'period'       => $currentPeriod,
+            ]);
+
+            $copied++;
+        }
+
+        return back()->with(
+            'success',
+            "Скопировано начислений: {$copied}"
+        );
     }
 }
