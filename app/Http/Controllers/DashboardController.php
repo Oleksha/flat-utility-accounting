@@ -7,7 +7,65 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
+    {
+        $year = (int) $request->get('year', now()->year);
+
+        $apartments = Apartment::with(['charges', 'payments'])->get();
+
+        $totalChargesAll = 0;
+        $totalPaymentsAll = 0;
+
+        foreach ($apartments as $apartment) {
+
+            $charges = $apartment->charges
+                ->filter(fn($c) => $c->period->year == $year);
+
+            $payments = $apartment->payments
+                ->filter(fn($p) => $p->payment_date->year == $year);
+
+            $apartment->totalCharges = $charges->sum('amount');
+            $apartment->totalPayments = $payments->sum('amount');
+            $apartment->debt = $apartment->totalCharges - $apartment->totalPayments;
+
+            $totalChargesAll += $apartment->totalCharges;
+            $totalPaymentsAll += $apartment->totalPayments;
+
+            // данные для мини-графика
+            $months = collect(range(1, 12))
+                ->map(fn($m) => sprintf('%02d', $m))
+                ->map(fn($m) => "$year-$m");
+
+            $chargesByMonth = $charges
+                ->groupBy(fn($c) => $c->period->format('Y-m'));
+
+            $paymentsByMonth = $payments
+                ->groupBy(fn($p) => $p->payment_date->format('Y-m'));
+
+            $apartment->chartLabels = $months
+                ->map(fn($m) => \Carbon\Carbon::createFromFormat('Y-m', $m)->translatedFormat('M'))
+                ->toArray();
+
+            $apartment->chartCharges = $months
+                ->map(fn($m) => ($chargesByMonth[$m] ?? collect())->sum('amount'))
+                ->toArray();
+
+            $apartment->chartPayments = $months
+                ->map(fn($m) => ($paymentsByMonth[$m] ?? collect())->sum('amount'))
+                ->toArray();
+        }
+
+        $totalDebtAll = $totalChargesAll - $totalPaymentsAll;
+
+        return view('dashboard', compact(
+            'apartments',
+            'year',
+            'totalChargesAll',
+            'totalPaymentsAll',
+            'totalDebtAll'
+        ));
+    }
+    /*public function index()
     {
         $apartments = Apartment::with(['charges', 'payments'])->get();
 
@@ -43,5 +101,5 @@ class DashboardController extends Controller
         }
 
         return view('dashboard', compact('apartments'));
-    }
+    }*/
 }
