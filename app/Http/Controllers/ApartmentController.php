@@ -108,6 +108,12 @@ class ApartmentController extends Controller
             ->map(fn($m) => ($payments[$m] ?? collect())->sum('amount'))
             ->toArray();
 
+        $chargesForYear = $apartment->charges()
+            ->whereYear('period', $year)
+            ->with('service')
+            ->orderBy('period')
+            ->get();
+
         return view('apartments.show', compact(
             'apartment',
             'charges',
@@ -119,7 +125,8 @@ class ApartmentController extends Controller
             'debt',
             'labels',
             'chargesGraph',
-            'paymentsGraph'
+            'paymentsGraph',
+            'chargesForYear'
         ));
     }
 

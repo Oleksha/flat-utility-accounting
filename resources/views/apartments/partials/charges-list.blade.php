@@ -11,6 +11,39 @@
             </span>
         </div>
 
+        {{--<table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Услуга</th>
+                <th>Сумма</th>
+                <th>Период</th>
+                <th>Квитанции</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach($items as $charge)
+                <tr>
+                    <td>{{ $charge->service->name }}</td>
+                    <td>{{ number_format($charge->amount, 2, ',', ' ') }} ₽</td>
+                    <td>{{ $charge->period->translatedFormat('F Y') }}</td>
+                    <td>
+                        @if($charge->receipts->isEmpty())
+                            <span class="text-muted">Нет</span>
+                        @else
+                            @foreach($charge->receipts as $receipt)
+                                <a href="{{ route('receipts.download', $receipt) }}"
+                                   class="btn btn-sm btn-outline-primary mb-1"
+                                   target="_blank">
+                                    📄 {{ $receipt->period->format('m.Y') }}
+                                </a>
+                            @endforeach
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>--}}
+
         <div class="table-responsive">
             <table class="table table-sm table-hover mb-0">
                 <thead class="table-light">
@@ -18,6 +51,7 @@
                     <th>Услуга</th>
                     <th>Комментарий</th>
                     <th class="text-end">Сумма</th>
+                    <th class="text-end">Квитанции</th>
                     <th class="text-end">Действия</th>
                 </tr>
                 </thead>
@@ -32,22 +66,24 @@
                             {{ number_format($charge->amount, 2, ',', ' ') }} ₽
                         </td>
                         <td class="text-end">
+                            @if($charge->receipts->isEmpty())
+                                <span class="text-muted">Нет</span>
+                            @else
+                                @foreach($charge->receipts as $receipt)
+                                    <a href="{{ route('receipts.download', $receipt) }}"
+                                       class="btn btn-sm btn-outline-primary mb-1"
+                                       target="_blank">
+                                        📄 {{ $receipt->period->format('m.Y') }}
+                                    </a>
+                                @endforeach
+                            @endif
+                        </td>
+                        <td class="text-end">
 
                             <a href="{{ route('charges.edit', $charge) }}"
                                class="btn btn-sm btn-outline-primary">
                                 ✏️
                             </a>
-
-                            @if($charge->receipt_path)
-                                <a href="{{ Storage::url($charge->receipt_path) }}"
-                                   class="btn btn-sm btn-outline-warning"
-                                   target="_blank"
-                                   title="Открыть квитанцию">
-                                    📄
-                                </a>
-                            @else
-                                —
-                            @endif
 
                             <form action="{{ route('charges.destroy', $charge) }}"
                                   method="POST"

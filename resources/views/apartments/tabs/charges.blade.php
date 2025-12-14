@@ -16,6 +16,12 @@
            class="btn btn-primary">
             📋 Начисления за месяц
         </a>
+
+        <button class="btn btn-outline-secondary"
+                data-bs-toggle="modal"
+                data-bs-target="#uploadReceiptModal">
+            📎 Загрузить квитанцию
+        </button>
     </div>
 </div>
 

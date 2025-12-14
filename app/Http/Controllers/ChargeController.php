@@ -234,4 +234,23 @@ class ChargeController extends Controller
             ->with('success', 'Начисления сохранены');
     }
 
+    public function byPeriod(Request $request)
+    {
+        $request->validate([
+            'apartment_id' => 'required|exists:apartments,id',
+            'year'         => 'required|integer',
+            'month'        => 'required|integer|min:1|max:12',
+        ]);
+
+        $charges = Charge::with('service')
+            ->where('apartment_id', $request->apartment_id)
+            ->whereYear('period', $request->year)
+            ->whereMonth('period', $request->month)
+            ->orderBy('service_id')
+            ->get();
+
+        return response()->json($charges);
+    }
+
+
 }

@@ -4,6 +4,9 @@ use App\Http\Controllers;
 
 Route::get('/', [Controllers\DashboardController::class, 'index'])->name('dashboard');
 
+Route::get('/charges/by-period', [Controllers\ChargeController::class, 'byPeriod'])
+    ->name('charges.byPeriod');
+
 Route::resource('apartments', Controllers\ApartmentController::class);
 Route::resource('providers', Controllers\ProviderController::class);
 Route::resource('services', Controllers\ServiceController::class);
@@ -36,3 +39,12 @@ Route::get('/payments/bulk/create', [Controllers\PaymentController::class, 'bulk
 Route::post('/payments/bulk/store', [Controllers\PaymentController::class, 'bulkStore'])
     ->name('payments.bulk.store');
 
+// Квитанции
+Route::post('/receipts', [Controllers\ReceiptController::class, 'store'])
+    ->name('receipts.store');
+
+Route::delete('/receipts/{receipt}', [Controllers\ReceiptController::class, 'destroy'])
+    ->name('receipts.destroy');
+
+Route::get('/receipts/{receipt}/download', [Controllers\ReceiptController::class, 'download'])
+    ->name('receipts.download');
