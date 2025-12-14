@@ -15,6 +15,7 @@ class Charge extends Model
         'service_id',
         'amount',
         'period',
+        'receipt_path',
         'comment',
     ];
 

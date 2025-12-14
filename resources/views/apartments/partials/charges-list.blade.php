@@ -38,6 +38,17 @@
                                 ✏️
                             </a>
 
+                            @if($charge->receipt_path)
+                                <a href="{{ Storage::url($charge->receipt_path) }}"
+                                   class="btn btn-sm btn-outline-warning"
+                                   target="_blank"
+                                   title="Открыть квитанцию">
+                                    📄
+                                </a>
+                            @else
+                                —
+                            @endif
+
                             <form action="{{ route('charges.destroy', $charge) }}"
                                   method="POST"
                                   class="d-inline"

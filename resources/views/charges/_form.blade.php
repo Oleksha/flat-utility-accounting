@@ -55,6 +55,26 @@
             </div>
         </div>
 
+        {{-- PDF-квитанция --}}
+        <div class="mb-3">
+            <label class="form-label">PDF-квитанция</label>
+
+            <input type="file"
+                   name="receipt"
+                   class="form-control"
+                   accept="application/pdf">
+
+            @if($charge->receipt_path)
+                <div class="mt-2">
+                    <a href="{{ Storage::url($charge->receipt_path) }}"
+                       target="_blank"
+                       class="btn btn-sm btn-outline-secondary">
+                        📄 Открыть квитанцию
+                    </a>
+                </div>
+            @endif
+        </div>
+
         {{-- Сумма --}}
         <div class="mb-3">
             <label class="form-label">Сумма (₽)</label>

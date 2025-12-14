@@ -7,6 +7,7 @@ use App\Models\Apartment;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class ChargeController extends Controller
 {
@@ -34,7 +35,8 @@ class ChargeController extends Controller
             'amount'       => 'required|numeric|min:0',
             'month'        => 'required|integer|min:1|max:12',
             'year'         => 'required|integer',
-            'comment' => 'nullable|string|max:255',
+            'comment'      => 'nullable|string|max:255',
+            'receipt'      => 'nullable|file|mimes:pdf|max:5120', // до 5 МБ
         ]);
 
         $data['period'] = \Carbon\Carbon::create(
@@ -45,6 +47,15 @@ class ChargeController extends Controller
 
         // убрать month/year
         unset($data['month'], $data['year']);
+
+        if ($request->hasFile('receipt')) {
+
+            $year  = $data['period']->year;
+            $month = sprintf('%02d', $data['period']->month);
+
+            $data['receipt_path'] = $request->file('receipt')
+                ->store("receipts/{$year}/{$month}", 'public');
+        }
 
         Charge::create($data);
 
@@ -71,6 +82,7 @@ class ChargeController extends Controller
             'month'        => 'required|integer|min:1|max:12',
             'year'         => 'required|integer',
             'comment'      => 'nullable|string|max:255',
+            'receipt'      => 'nullable|file|mimes:pdf|max:5120', // до 5 МБ
         ]);
 
         $data['period'] = \Carbon\Carbon::create(
@@ -82,6 +94,20 @@ class ChargeController extends Controller
         // убрать month/year
         unset($data['month'], $data['year']);
 
+        if ($request->hasFile('receipt')) {
+
+            // удалить старый файл
+            if ($charge->receipt_path) {
+                Storage::disk('public')->delete($charge->receipt_path);
+            }
+
+            $year  = $data['period']->year;
+            $month = sprintf('%02d', $data['period']->month);
+
+            $data['receipt_path'] = $request->file('receipt')
+                ->store("receipts/{$year}/{$month}", 'public');
+        }
+
         $charge->update($data);
 
         return redirect()
@@ -92,6 +118,11 @@ class ChargeController extends Controller
     public function destroy(Charge $charge)
     {
         $apartmentId = $charge->apartment_id;
+
+        if ($charge->receipt_path) {
+            Storage::disk('public')->delete($charge->receipt_path);
+        }
+
         $charge->delete();
 
         return redirect()

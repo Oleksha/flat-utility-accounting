@@ -17,7 +17,7 @@
                 🔁 Скопировать с прошлого месяца
             </button>
         </form>
-        <form method="POST" action="{{ route('charges.store') }}">
+        <form method="POST" action="{{ route('charges.store') }}" enctype="multipart/form-data">
             @csrf
             @include('charges._form')
         </form>
