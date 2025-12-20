@@ -37,5 +37,35 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 @stack('scripts')
+<script>
+    document.addEventListener('shown.bs.modal', function (event) {
+        const modal = event.target;
+
+        const list = modal.querySelector('.receipts-list');
+        const iframe = modal.querySelector('.receipt-preview');
+
+        if (!list || !iframe) return;
+
+        const items = list.querySelectorAll('.receipt-item');
+        if (!items.length) return;
+
+        // 🟢 Сброс подсветки
+        items.forEach(i => i.classList.remove('active'));
+
+        // 🟢 Автооткрытие первой квитанции
+        const first = items[0];
+        first.classList.add('active');
+        iframe.src = first.dataset.pdf;
+
+        // 🟢 Клик по квитанции
+        items.forEach(item => {
+            item.addEventListener('click', () => {
+                items.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                iframe.src = item.dataset.pdf;
+            });
+        });
+    });
+</script>
 </body>
 </html>

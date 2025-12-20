@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Charge;
 use App\Models\Apartment;
+use App\Models\Receipt;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -82,38 +83,46 @@ class ChargeController extends Controller
             'month'        => 'required|integer|min:1|max:12',
             'year'         => 'required|integer',
             'comment'      => 'nullable|string|max:255',
-            'receipt'      => 'nullable|file|mimes:pdf|max:5120', // до 5 МБ
+            'receipt'      => 'nullable|file|mimes:pdf|max:5120',
         ]);
 
-        $data['period'] = \Carbon\Carbon::create(
+        $period = Carbon::create(
             $data['year'],
             $data['month'],
             1
         );
 
-        // убрать month/year
-        unset($data['month'], $data['year']);
+        // обновляем начисление
+        $charge->update([
+            'apartment_id' => $data['apartment_id'],
+            'service_id'   => $data['service_id'],
+            'amount'       => $data['amount'],
+            'period'       => $period,
+            'comment'      => $data['comment'] ?? null,
+        ]);
 
+        // ➕ добавление квитанции
         if ($request->hasFile('receipt')) {
 
-            // удалить старый файл
-            if ($charge->receipt_path) {
-                Storage::disk('public')->delete($charge->receipt_path);
-            }
+            $year  = $period->year;
+            $month = sprintf('%02d', $period->month);
 
-            $year  = $data['period']->year;
-            $month = sprintf('%02d', $data['period']->month);
-
-            $data['receipt_path'] = $request->file('receipt')
+            $path = $request->file('receipt')
                 ->store("receipts/{$year}/{$month}", 'public');
+
+            Receipt::create([
+                'apartment_id'  => $charge->apartment_id,
+                'file_path'     => $path,
+                'period'        => $period,
+                'original_name' => $request->file('receipt')->getClientOriginalName(),
+            ])->charges()->attach($charge->id);
         }
 
-        $charge->update($data);
-
         return redirect()
-            ->route('apartments.show', $data['apartment_id'])
+            ->route('apartments.show', $charge->apartment_id)
             ->with('success', 'Начисление обновлено');
     }
+
 
     public function destroy(Charge $charge)
     {

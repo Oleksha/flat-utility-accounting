@@ -218,6 +218,27 @@
             });
         </script>
     </div>
+    {{--<script>
+        document.addEventListener('DOMContentLoaded', function () {
 
+            document.querySelectorAll('.receipt-item').forEach(button => {
 
+                button.addEventListener('click', function () {
+
+                    const pdfUrl = this.dataset.pdfUrl;
+
+                    // Ищем iframe внутри текущего modal
+                    const modal = this.closest('.modal');
+                    const iframe = modal.querySelector('iframe');
+                    const openBtn = modal.querySelector('[id^="open-pdf"]');
+
+                    iframe.src = pdfUrl;
+
+                    openBtn.href = pdfUrl;
+                    openBtn.classList.remove('d-none');
+                });
+            });
+
+        });
+    </script>--}}
 @endsection

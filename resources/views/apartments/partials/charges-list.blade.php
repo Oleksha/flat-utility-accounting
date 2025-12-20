@@ -73,84 +73,45 @@
             </table>
         </div>
         @foreach($items as $charge)
-            <div class="modal fade"
-                 id="receiptsModal-{{ $charge->id }}"
-                 tabindex="-1">
-                <div class="modal-dialog modal-lg">
+            <div class="modal fade" id="receiptsModal-{{ $charge->id }}" tabindex="-1">
+                <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content">
 
                         <div class="modal-header">
                             <h5 class="modal-title">
                                 Квитанции — {{ $charge->service->name }}
-                                ({{ $charge->period->translatedFormat('F Y') }})
                             </h5>
-                            <button type="button"
-                                    class="btn-close"
-                                    data-bs-dismiss="modal"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
 
-                        <div class="modal-body">
+                        <div class="modal-body d-flex" style="height:70vh">
 
-                            @if($charge->receipts->isEmpty())
-                                <div class="alert alert-secondary mb-0">
-                                    Квитанций нет
-                                </div>
-                            @else
-                                <table class="table table-sm align-middle">
-                                    <thead>
-                                    <tr>
-                                        <th>Файл</th>
-                                        <th>Период</th>
-                                        <th class="text-end">Действия</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    @foreach($charge->receipts as $receipt)
-                                        <tr>
-                                            <td>
-                                                📄 {{ $receipt->original_name ?? 'Квитанция.pdf' }}
-                                            </td>
-                                            <td>
-                                                {{ $receipt->period->format('m.Y') }}
-                                            </td>
-                                            <td class="text-end">
+                            {{-- Список квитанций --}}
+                            <div class="list-group me-3 receipts-list" style="width:280px">
+                                @foreach($charge->receipts as $receipt)
+                                    <button
+                                        type="button"
+                                        class="list-group-item list-group-item-action receipt-item"
+                                        data-pdf="{{ Storage::url($receipt->file_path) }}">
+                                        {{ $receipt->created_at->format('d.m.Y') }}
+                                    </button>
+                                @endforeach
+                            </div>
 
-                                                <a href="{{ route('receipts.download', $receipt) }}"
-                                                   target="_blank"
-                                                   class="btn btn-sm btn-outline-primary">
-                                                    Открыть
-                                                </a>
+                            {{-- Просмотр PDF --}}
+                            <div class="flex-fill border rounded">
+                                <iframe class="receipt-preview w-100 h-100"
+                                        style="border:0"></iframe>
+                            </div>
 
-                                                <form method="POST"
-                                                      action="{{ route('receipts.destroy', $receipt) }}"
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('Удалить квитанцию?')">
-                                                    @csrf
-                                                    @method('DELETE')
-
-                                                    <button class="btn btn-sm btn-outline-danger">
-                                                        🗑
-                                                    </button>
-                                                </form>
-
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                    </tbody>
-                                </table>
-                            @endif
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary"
-                                    data-bs-dismiss="modal">
-                                Закрыть
-                            </button>
                         </div>
                     </div>
                 </div>
             </div>
+
         @endforeach
     </div>
 @empty
     <p class="text-muted">Начислений за {{ $year }} год нет.</p>
 @endforelse
+
