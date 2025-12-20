@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Apartment;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 class ApartmentController extends Controller
 {
@@ -31,39 +33,6 @@ class ApartmentController extends Controller
         return redirect()->route('apartments.index')->with('success', 'Квартира добавлена');
     }
 
-    /*public function show(Apartment $apartment)
-    {
-        // Определяем выбранный год (по умолчанию — текущий)
-        $year = request()->get('year', now()->year);
-
-        // Все уникальные года, в которых есть начисления или платежи
-        $years = collect()
-            ->merge($apartment->charges->pluck('period')->map->year)
-            ->merge($apartment->payments->pluck('payment_date')->map->year)
-            ->unique()
-            ->sortDesc()
-            ->values();
-
-        // Фильтруем начисления по году
-        $charges = $apartment->charges
-            ->filter(fn($c) => $c->period->year == $year)
-            ->sortByDesc('period')
-            ->groupBy(fn($c) => $c->period->format('Y-m'));
-
-        // Фильтруем платежи по году
-        $payments = $apartment->payments
-            ->filter(fn($p) => $p->payment_date->year == $year)
-            ->sortByDesc('payment_date')
-            ->groupBy(fn($p) => $p->payment_date->format('Y-m'));
-
-        return view('apartments.show', compact(
-            'apartment',
-            'charges',
-            'payments',
-            'years',
-            'year'
-        ));
-    }*/
     public function show(Apartment $apartment)
     {
         // выбранный год
@@ -78,9 +47,11 @@ class ApartmentController extends Controller
             ->values();
 
         // начисления за год
-        $charges = $apartment->charges
-            ->filter(fn($c) => $c->period->year == $year)
-            ->sortBy('period')
+        $charges = $apartment->charges()
+            ->with('service', 'receipts')
+            ->whereYear('period', $year)
+            ->orderBy('period')
+            ->get()
             ->groupBy(fn($c) => $c->period->format('Y-m'));
 
         // платежи за год
