@@ -37,28 +37,43 @@ class ChargeController extends Controller
             'month'        => 'required|integer|min:1|max:12',
             'year'         => 'required|integer',
             'comment'      => 'nullable|string|max:255',
-            'receipt'      => 'nullable|file|mimes:pdf|max:5120', // до 5 МБ
+            'receipt'      => 'nullable|file|mimes:pdf|max:5120',
         ]);
 
-        $data['period'] = \Carbon\Carbon::create(
+        $period = Carbon::create(
             $data['year'],
             $data['month'],
             1
         );
 
-        // убрать month/year
-        unset($data['month'], $data['year']);
+        // 1️⃣ создаём начисление
+        $charge = Charge::create([
+            'apartment_id' => $data['apartment_id'],
+            'service_id'   => $data['service_id'],
+            'amount'       => $data['amount'],
+            'period'       => $period,
+            'comment'      => $data['comment'] ?? null,
+        ]);
 
+        // 2️⃣ сохраняем квитанцию
         if ($request->hasFile('receipt')) {
 
-            $year  = $data['period']->year;
-            $month = sprintf('%02d', $data['period']->month);
+            $year  = $period->year;
+            $month = sprintf('%02d', $period->month);
 
-            $data['receipt_path'] = $request->file('receipt')
+            $path = $request->file('receipt')
                 ->store("receipts/{$year}/{$month}", 'public');
-        }
 
-        Charge::create($data);
+            $receipt = Receipt::create([
+                'apartment_id'  => $data['apartment_id'],
+                'file_path'     => $path,
+                'period'        => $period,
+                'original_name' => $request->file('receipt')->getClientOriginalName(),
+            ]);
+
+            // 3️⃣ связываем
+            $receipt->charges()->attach($charge->id);
+        }
 
         return redirect()
             ->route('apartments.show', $data['apartment_id'])

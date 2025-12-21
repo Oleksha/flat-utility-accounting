@@ -85,6 +85,23 @@ class ApartmentController extends Controller
             ->orderBy('period')
             ->get();
 
+        // начисления за год (для услуг)
+        $chargesForServices = $apartment->charges()
+            ->with('service')
+            ->whereYear('period', $year)
+            ->get();
+
+        $servicesMatrix = $chargesForServices
+            ->groupBy('service.name')
+            ->map(function ($items) {
+                return $items
+                    ->groupBy(fn($c) => $c->period->format('Y-m'))
+                    ->map(fn($m) => $m->sum('amount'));
+            });
+
+        $servicesTotals = $servicesMatrix
+            ->map(fn($months) => $months->sum());
+
         return view('apartments.show', compact(
             'apartment',
             'charges',
@@ -97,7 +114,10 @@ class ApartmentController extends Controller
             'labels',
             'chargesGraph',
             'paymentsGraph',
-            'chargesForYear'
+            'chargesForYear',
+            // новое
+            'servicesMatrix',
+            'servicesTotals'
         ));
     }
 

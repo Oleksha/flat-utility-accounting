@@ -4,7 +4,7 @@
     <h2>Квартира: {{ $apartment->name }}</h2>
     <p class="text-muted"><strong>Адрес:</strong> {{ $apartment->address }}</p>
 
-    <ul class="nav nav-tabs mb-4" id="apartmentTabs" role="tablist">
+    {{--<ul class="nav nav-tabs mb-4" id="apartmentTabs" role="tablist">
         <li class="nav-item">
             <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#overview">
                 📊 Обзор
@@ -20,7 +20,51 @@
                 💳 Платежи
             </button>
         </li>
+
+    </ul>--}}
+    <ul class="nav nav-tabs mb-4" id="apartmentTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    data-bs-toggle="tab"
+                    data-bs-target="#overview"
+                    type="button"
+                    role="tab">
+                📊 Обзор
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    data-bs-toggle="tab"
+                    data-bs-target="#charges"
+                    type="button"
+                    role="tab">
+                📄 Начисления
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    data-bs-toggle="tab"
+                    data-bs-target="#payments"
+                    type="button"
+                    role="tab">
+                💳 Платежи
+            </button>
+        </li>
+
+        {{-- 🆕 Услуги --}}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    data-bs-toggle="tab"
+                    data-bs-target="#services"
+                    type="button"
+                    role="tab">
+                🧾 Услуги
+            </button>
+        </li>
     </ul>
+
 
     <div class="tab-content">
 
@@ -37,6 +81,11 @@
         {{-- ПЛАТЕЖИ --}}
         <div class="tab-pane fade" id="payments">
             @include('apartments.tabs.payments')
+        </div>
+
+        {{-- 🆕 Услуги --}}
+        <div class="tab-pane fade" id="services" role="tabpanel">
+            @include('apartments.tabs.services')
         </div>
 
     </div>
