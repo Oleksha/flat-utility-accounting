@@ -60,6 +60,40 @@ class ApartmentController extends Controller
             ->sortBy('payment_date')
             ->groupBy(fn($p) => $p->payment_date->format('Y-m'));
 
+        // формируем матрицу по услугам
+        $servicesStats = [];
+        // добавляем начисления
+        foreach ($charges as $month => $items) {
+            foreach ($items as $charge) {
+                $service = $charge->service->name;
+
+                $servicesStats[$service][$month]['charged'] =
+                    ($servicesStats[$service][$month]['charged'] ?? 0)
+                    + $charge->amount;
+            }
+        }
+        // Платежи
+        foreach ($payments as $month => $items) {
+            foreach ($items as $payment) {
+                $service = $payment->service->name;
+
+                $servicesStats[$service][$month]['paid'] =
+                    ($servicesStats[$service][$month]['paid'] ?? 0)
+                    + $payment->amount;
+            }
+        }
+        // Задолженность
+        foreach ($servicesStats as $service => $months) {
+            foreach ($months as $month => $data) {
+                $charged = $data['charged'] ?? 0;
+                $paid    = $data['paid'] ?? 0;
+
+                $servicesStats[$service][$month]['debt'] = $charged - $paid;
+            }
+        }
+        // Приводим к Collection
+        $servicesStats = collect($servicesStats);
+
         // Итоги за год
         $totalCharges = $charges->flatten()->sum('amount');
         $totalPayments = $payments->flatten()->sum('amount');
@@ -115,9 +149,10 @@ class ApartmentController extends Controller
             'chargesGraph',
             'paymentsGraph',
             'chargesForYear',
-            // новое
             'servicesMatrix',
-            'servicesTotals'
+            'servicesTotals',
+            // новое
+            'servicesStats'
         ));
     }
 
